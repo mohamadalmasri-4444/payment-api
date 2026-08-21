@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة تأكيد الدفع</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f5f5;
+            padding: 20px;
+            direction: rtl;
+            text-align: right;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .order {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 5px #ccc;
+        }
+
+        .btn {
+            background: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn:disabled {
+            background: gray;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>لوحة تأكيد الدفع</h2>
+
+    <div id="orders"></div>
+
+    <script>
+        // جلب الطلبات من السيرفر
+        async function loadOrders() {
+            const res = await fetch('/api/orders');
+            const data = await res.json();
+
+            const container = document.getElementById('orders');
+            container.innerHTML = '';
+
+            data.orders.forEach(order => {
+                const div = document.createElement('div');
+                div.className = 'order';
+
+                div.innerHTML = `
+                    <strong>طلب #${order.id}</strong><br>
+                    الاسم: ${order.name}<br>
+                    الرقم: ${order.phone}<br>
+                    طريقة الدفع: ${order.payment_method}<br>
+                    الوقت: ${order.time}<br>
+                    الحالة: ${order.status}<br>
+                    <button class="btn" onclick="confirmPayment(${order.id})"
+                        ${order.status === 'confirmed' ? 'disabled' : ''}>
+                        ✔ تأكيد الدفع
+                    </button>
+                `;
+
+                container.appendChild(div);
+            });
+        }
+
+        // تأكيد الدفع
+        async function confirmPayment(id) {
+            const res = await fetch('/api/confirm-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: id })
+            });
+
+            const data = await res.json();
+            alert(data.message);
+
+            loadOrders(); // تحديث الصفحة
+        }
+
+        // تحميل الطلبات عند فتح الصفحة
+        loadOrders();
+        setInterval(loadOrders, 5000);
+
+    </script>
+
+</body>
+</html>
