@@ -34,7 +34,8 @@ app.post('/api/create-order', (req, res) => {
         name,
         phone,
         payment_method,
-        time: new Date().toLocaleString(),
+        time: new Date().toLocaleString("en-US", { timeZone: "Asia/Damascus" }),
+
         status: "pending"
     };
 
