@@ -1,38 +1,35 @@
-const fs = require("fs");
-const path = require("path");
 const sendNotification = require("../utils/sendNotification");
+const Payment = require("../models/Payment");
 
-exports.handlePayment = (req, res) => {
-  const { userId, userName, amount, method } = req.body;
+exports.handlePayment = async (req, res) => {
+  try {
+    const { userId, userName, amount, method, subscriberId } = req.body;
 
-  // تجهيز بيانات العملية
-  const paymentData = {
-    userId,
-    userName,
-    amount,
-    method,
-    status: "pending",
-    date: new Date().toISOString()
-  };
+    const newPayment = new Payment({
+      id: Date.now(),
+      userId,
+      userName,
+      amount,
+      method,
+      subscriberId,
+      payment_status: false,
+      time: new Date()
+    });
 
-  // مسار ملف التخزين
-  const filePath = path.join(__dirname, "../database/payments.json");
+    await newPayment.save();
 
-  // قراءة الملف
-  const payments = JSON.parse(fs.readFileSync(filePath));
+    sendNotification(`💰 عملية دفع جديدة من ${userName}`);
 
-  // إضافة العملية الجديدة
-  payments.push(paymentData);
+    res.json({
+      success: true,
+      message: "✔ تم تسجيل عملية الدفع، سيتم مراجعتها قريبًا."
+    });
 
-  // حفظ الملف
-  fs.writeFileSync(filePath, JSON.stringify(payments, null, 2));
-
-  // إرسال إشعار إلك
-  sendNotification(`💰 عملية دفع جديدة من ${userName}`);
-
-  // رد للزبون
-  res.json({
-    success: true,
-    message: "تم تسجيل عملية الدفع، سيتم مراجعتها قريبًا."
-  });
+  } catch (error) {
+    console.error("Payment error:", error);
+    res.status(500).json({
+      success: false,
+      message: "❌ حدث خطأ في السيرفر"
+    });
+  }
 };

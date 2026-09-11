@@ -2,87 +2,53 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
-// إنشاء التطبيق
+// اتصال MongoDB
+require("./db");
+
 const app = express();
 
 // تفعيل CORS
 app.use(cors());
 
-// تفعيل استقبال JSON
+// استقبال JSON
 app.use(bodyParser.json());
 
-// تفعيل مجلد public لعرض صفحات HTML
+// تفعيل مجلد public (لوحة الداشبورد)
 app.use(express.static("public"));
-
 
 // ربط المسارات
 const paymentRoute = require("./routes/payment");
 const confirmRoute = require("./routes/confirm");
+const Payment = require("./models/Payment");
 
+// تسجيل عملية الدفع
 app.use("/api/payment", paymentRoute);
+
+// تأكيد الدفع
 app.use("/api/confirm", confirmRoute);
 
-// تخزين الطلبات مؤقتاً داخل Array
-let orders = [];
-
-// مسار إنشاء طلب جديد
-app.post('/api/create-order', (req, res) => {
-    const { name, phone, payment_method } = req.body;
-
-    const newOrder = {
-        id: orders.length + 1,
-        name,
-        phone,
-        payment_method,
-        time: new Date().toLocaleString("en-US", { timeZone: "Asia/Damascus" }),
-
-        status: "pending"
-    };
-
-    orders.push(newOrder);
+// ⭐⭐ جلب كل عمليات الدفع للداشبورد ⭐⭐
+app.get("/api/payments", async (req, res) => {
+  try {
+    const payments = await Payment.find().sort({ time: -1 });
 
     res.json({
-        success: true,
-        message: "Order created successfully",
-        order: newOrder
+      success: true,
+      payments
     });
+
+  } catch (error) {
+    console.error("Payments Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "❌ خطأ في جلب العمليات"
+    });
+  }
 });
 
-// مسار عرض كل الطلبات
-app.get('/api/orders', (req, res) => {
-    res.json({
-        success: true,
-        orders: orders
-    });
-});
-
-// مسار تأكيد الدفع
-app.post('/api/confirm-payment', (req, res) => {
-    const { order_id } = req.body;
-
-    // البحث عن الطلب
-    const order = orders.find(o => o.id === order_id);
-
-    if (!order) {
-        return res.json({
-            success: false,
-            message: "Order not found"
-        });
-    }
-
-    // تغيير حالة الطلب
-    order.status = "confirmed";
-
-    res.json({
-        success: true,
-        message: "Payment confirmed",
-        order: order
-    });
-});
-
-
+// تشغيل السيرفر
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
-
