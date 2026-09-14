@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
 
 const app = express();
 
@@ -8,24 +7,19 @@ const app = express();
 app.use(cors());
 
 // استقبال JSON
-app.use(bodyParser.json());
+app.use(express.json());
 
-// تفعيل مجلد public إذا بدك تستخدمه
-app.use(express.static("public"));
+// عرض لوحة التحكم
+app.use(express.static("dashboard"));
 
-// ربط المسارات الجديدة
+// ربط المسارات
 const paymentRoute = require("./routes/payment");
 const confirmRoute = require("./routes/confirm");
+const paymentsRoute = require("./routes/payments"); // ← ملف جديد مهم
 
-app.use("/api/payment", paymentRoute);   // تسجيل عملية الدفع
-app.use("/api/confirm", confirmRoute);   // تأكيد الدفع وتسليم المنتج
-
-// ⭐⭐ مسار جلب كل عمليات الدفع للداشبورد ⭐⭐
-app.get("/api/payments", (req, res) => {
-  const fs = require("fs");
-  const payments = JSON.parse(fs.readFileSync("payments.json", "utf8"));
-  res.json({ payments });
-});
+app.use("/api/payment", paymentRoute);     // تسجيل عملية الدفع
+app.use("/api/confirm", confirmRoute);     // تأكيد الدفع (يدوي)
+app.use("/api/payments", paymentsRoute);   // جلب الطلبات من Google Sheets
 
 // تشغيل السيرفر
 const PORT = process.env.PORT || 3000;

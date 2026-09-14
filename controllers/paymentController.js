@@ -1,17 +1,10 @@
-const fs = require("fs");
-const path = require("path");
-const sendNotification = require("../utils/sendNotification");
+const fetch = require("node-fetch");
 
-exports.handlePayment = (req, res) => {
+exports.handlePayment = async (req, res) => {
   const { userId, userName, amount, method, subscriberId } = req.body;
 
-  const filePath = path.join(__dirname, "../payments.json");
-
-  // قراءة الملف
-  const payments = JSON.parse(fs.readFileSync(filePath, "utf8"));
-
-  // إنشاء ID جديد للعملية
-  const newId = payments.length > 0 ? payments[payments.length - 1].id + 1 : 1;
+  // إنشاء ID فريد لكل عملية
+  const newId = Date.now();
 
   // تجهيز بيانات العملية
   const paymentData = {
@@ -20,23 +13,32 @@ exports.handlePayment = (req, res) => {
     userName,
     amount,
     method,
-    subscriberId,          // ← أضفناه هون
+    subscriberId,
     payment_status: false, // بانتظار التأكيد
     time: new Date().toISOString()
   };
 
-  // إضافة العملية الجديدة
-  payments.push(paymentData);
+  try {
+    // إرسال البيانات إلى Google Sheets
+    await fetch(
+      "https://script.google.com/macros/s/AKfycbwCNaW6_m6REgr5B60Oa1UvCrjaKLiXdeiM2OFWkywKs9FtnUoQJqnKFmgtC61YKN393A/exec",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paymentData)
+      }
+    );
 
-  // حفظ الملف
-  fs.writeFileSync(filePath, JSON.stringify(payments, null, 2));
+    return res.json({
+      success: true,
+      message: "✔ تم تسجيل عملية الدفع بنجاح"
+    });
 
-  // إرسال إشعار إلك
-  sendNotification(`💰 عملية دفع جديدة من ${userName}`);
-
-  // رد للزبون
-  res.json({
-    success: true,
-    message: "تم تسجيل عملية الدفع، سيتم مراجعتها قريبًا."
-  });
+  } catch (error) {
+    console.error(error);
+    return res.json({
+      success: false,
+      message: "❌ خطأ أثناء إرسال البيانات إلى Google Sheets"
+    });
+  }
 };
