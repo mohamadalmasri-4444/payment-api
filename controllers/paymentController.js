@@ -1,4 +1,4 @@
-const fetch = require("node-fetch");
+const axios = require("axios");
 
 exports.handlePayment = async (req, res) => {
   const { userId, userName, amount, method, subscriberId } = req.body;
@@ -19,15 +19,8 @@ exports.handlePayment = async (req, res) => {
   };
 
   try {
-    // إرسال البيانات إلى Google Sheets
-    await fetch(
-      "https://script.google.com/macros/s/AKfycbwCNaW6_m6REgr5B60Oa1UvCrjaKLiXdeiM2OFWkywKs9FtnUoQJqnKFmgtC61YKN393A/exec",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paymentData)
-      }
-    );
+    // إرسال البيانات إلى SheetDB
+    await axios.post("https://sheetdb.io/api/v1/ufuv0arvnthjs", paymentData);
 
     return res.json({
       success: true,
@@ -38,7 +31,7 @@ exports.handlePayment = async (req, res) => {
     console.error(error);
     return res.json({
       success: false,
-      message: "❌ خطأ أثناء إرسال البيانات إلى Google Sheets"
+      message: "❌ خطأ أثناء إرسال البيانات إلى SheetDB"
     });
   }
 };
