@@ -2,7 +2,7 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تأكيد الدفع</title>
+    <title>لوحة التحكم - عمليات الدفع</title>
 
     <style>
         body {
@@ -35,6 +35,11 @@
             margin-top: 10px;
         }
 
+        .btn:disabled {
+            background: gray;
+            cursor: not-allowed;
+        }
+
         .status {
             font-weight: bold;
         }
@@ -43,7 +48,7 @@
 
 <body>
 
-    <h2>لوحة تأكيد الدفع</h2>
+    <h2>لوحة التحكم - عمليات الدفع</h2>
 
     <div id="orders"></div>
 

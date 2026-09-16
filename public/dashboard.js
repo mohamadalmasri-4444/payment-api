@@ -1,4 +1,4 @@
-// جلب الطلبات من السيرفر (Google Sheets)
+// جلب الطلبات من السيرفر
 async function loadOrders() {
     const res = await fetch('/api/payments');
     const data = await res.json();
@@ -19,7 +19,8 @@ async function loadOrders() {
             طريقة الدفع: ${payment.method}<br>
             الوقت: ${payment.time}<br>
             الحالة: <span class="status">${statusText}</span><br>
-            <button class="btn" onclick="confirmPayment(${payment.id})">
+            <button class="btn" onclick="confirmPayment(${payment.id})"
+                ${payment.payment_status ? 'disabled' : ''}>
                 ✔ تأكيد الدفع
             </button>
         `;
@@ -28,9 +29,18 @@ async function loadOrders() {
     });
 }
 
-// تأكيد الدفع (يدوي فقط)
-function confirmPayment(id) {
-    alert("✔ تم تأكيد الدفع يدويًا — التخزين الآن على Google Sheets");
+// تأكيد الدفع الحقيقي
+async function confirmPayment(id) {
+    const res = await fetch('/api/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_id: id })
+    });
+
+    const data = await res.json();
+    alert(data.message);
+
+    loadOrders(); // تحديث الصفحة بعد التأكيد
 }
 
 // تحميل الطلبات عند فتح الصفحة
