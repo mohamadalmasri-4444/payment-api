@@ -15,9 +15,8 @@ exports.handlePayment = async (req, res) => {
     method,
     subscriberId,
     payment_status: false, // بانتظار التأكيد
-    time: new Date()
-  .toLocaleString("sv-SE", { timeZone: "Asia/Damascus" })
-  .replace(" ", "T")
+   time: new Date().toLocaleString("sv-SE", { timeZone: "Asia/Damascus" })
+
 
 
   };
