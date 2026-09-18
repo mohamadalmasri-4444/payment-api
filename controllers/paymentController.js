@@ -10,12 +10,12 @@ exports.handlePayment = async (req, res) => {
   const paymentData = {
     id: newId,
     userId,
-    userName,
+    userName, 
     amount,
     method,
     subscriberId,
     payment_status: false, // بانتظار التأكيد
-    time: new Date().toLocaleString("ar-SY", { timeZone: "Asia/Damascus" })
+    time: new Date().toISOString() 
 
   };
 
